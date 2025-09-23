@@ -2,6 +2,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+import time
+
 from samsungtvws import SamsungTVWS
 
 ip = "192.168.12.222"
@@ -12,6 +14,30 @@ tv = SamsungTVWS(ip, port=8002, token_file=token_file)
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
+
+# How many consecutive frames a gesture must be detected to trigger action
+GESTURE_FRAMES_REQUIRED = 120
+
+# Track how many frames each gesture has been detected
+gesture_counts = {
+    "Point Right": 0,
+    "Point Left": 0,
+    "Enter": 0,
+    "Menu": 0,
+    "None": 0
+}
+
+# Some notes on MediaPipe hand landmarks:
+# 0: wrist
+# Each finger has 4 landmarks:
+
+# Tip (farthest point)
+
+# DIP (Distal Interphalangeal)
+
+# PIP (Proximal Interphalangeal)
+
+# MCP (Metacarpophalangeal, where finger meets palm)
 
     
 def is_open_palm(hand_landmarks):
@@ -63,14 +89,17 @@ def classify_pointing(hand_landmarks):
             return "Point Right"
     elif is_open_palm(hand_landmarks):
         tv.shortcuts().enter()
-        return "Open Palm"
+        return "Enter"
     elif is_fist(hand_landmarks):
-        tv.shortcuts().home()
-        return "fist"
+        tv.shortcuts().menu()
+        return "Menu"
+    else:
+        return "None"
 
     return None
 
-cap = cv2.VideoCapture(0)
+# Initialize video capture (webcam:1 or iphone:0)
+cap = cv2.VideoCapture(1)
 
 with mp_hands.Hands(min_detection_confidence=0.8,
                     min_tracking_confidence=0.8) as hands:
@@ -88,8 +117,31 @@ with mp_hands.Hands(min_detection_confidence=0.8,
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_drawing.draw_landmarks(image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                gesture = classify_pointing(hand_landmarks)
-                cv2.putText(image, gesture, (50, 50),
+                detected_gesture = classify_pointing(hand_landmarks)
+
+                # ---- Gesture stability logic ----
+                if detected_gesture:
+                    gesture_counts[detected_gesture] += 1
+
+                    if gesture_counts[detected_gesture] >= GESTURE_FRAMES_REQUIRED:
+                        # Trigger the TV action
+                        if detected_gesture == "Point Left":
+                            tv.shortcuts().left()
+                        elif detected_gesture == "Point Right":
+                            tv.shortcuts().right()
+                        elif detected_gesture == "Enter":
+                            tv.shortcuts().enter()
+                        elif detected_gesture == "Open menu":
+                            tv.shortcuts().home()
+
+                        # Reset count after triggering
+                        gesture_counts[detected_gesture] = 0
+                else:
+                    # Reset all counts if no gesture detected
+                    for g in gesture_counts:
+                        gesture_counts[g] = 0
+                                # Show gesture on screen
+                cv2.putText(image, detected_gesture or "None", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         cv2.imshow("Hand Gesture Remote", image)
