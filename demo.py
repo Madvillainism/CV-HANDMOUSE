@@ -16,6 +16,7 @@ GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
 RunningMode = mp.tasks.vision.RunningMode
 Image = mp.Image
 
+# === All this nonense below is just to make the demo look cool ===
 # Shared state for latest gesture (simple string)
 _latest_gesture: Optional[str] = None
 
@@ -30,7 +31,7 @@ HAND_CONNECTIONS = [
     (13,17),(17,18),(18,19),(19,20),# Pinky
     (0,17)                          # Palm base connection
 ]
-
+# === All this nonense above is just to make the demo look cool ===
 
 def print_result(result, output_image, timestamp_ms: int):
     """Callback for live-stream results, because its an asynchronous API we have to use a callback for its reponse. 

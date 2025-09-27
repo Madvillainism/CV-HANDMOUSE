@@ -12,11 +12,11 @@ classification results via a callback.
 
 ## Quickstart
 
-1. Install Python 3.8+ and create a virtual environment (recommended):
+1. Install Python 3.10 and create a virtual environment (recommended):
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3.10 -m venv my_venv
+source my_venv/bin/activate
 ```
 
 2. Install dependencies:
