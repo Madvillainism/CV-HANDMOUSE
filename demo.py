@@ -31,8 +31,13 @@ def print_result(result, output_image, timestamp_ms: int):
     """
     text = None
     if result and result.gestures:
-        g = result.gestures[0][0]  # first gesture, first category
-        text = f"{g.category_name} Confidence: ({g.score:.2f})"
+        # The result contains four components
+        # Each component is an array
+        # where each element contains the detected result of a single detected hand.
+
+        gesture = result.gestures[0][0]
+        handedness = result.handedness[0][0].category_name
+        text = f"{handedness} hand - {gesture.category_name} - Confidence: ({gesture.score:.2f})"
         print(f'Reconized: {text}')
 
     # update shared state
@@ -62,7 +67,10 @@ def main():
                 ret, frame = cap.read()
                 if not ret:
                     break
-
+                
+                 # Flip the frame horizontally (so it acts like a mirror)
+                frame_flipped = cv2.flip(frame, 1)   
+            
                 # MediaPipe expects RGB images. OpenCV gives BGR.
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -76,13 +84,13 @@ def main():
                 # results for LIVE_STREAM are delivered via the `print_result` callback
                 recognizer.recognize_async(mp_image, timestamp_ms)
 
-                # Draw the latest gesture on the frame 
+                # Draw the latest gesture on the flipped frame (we display frame_flipped)
                 detected_gesture = _latest_gesture
-                if detected_gesture:    
-                    cv2.putText(frame, detected_gesture, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
+                if detected_gesture:
+                    cv2.putText(frame_flipped, detected_gesture, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
                 # Show the camera feed and stop on 'q'
-                cv2.imshow('Gesture Live', frame)
+                cv2.imshow('Gesture Live', frame_flipped)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
         finally:
