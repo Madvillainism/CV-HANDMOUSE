@@ -1,13 +1,16 @@
 import time
 import cv2
 import mediapipe as mp
+from pathlib import Path
+import sys
 
 # NOTE: this file is a minimal live-stream example following the
 # Google MediaPipe GestureRecognizer demo. 
 
 # === CONFIGURATION ===
-# Path to the .task model file. 
-MODEL_PATH = '/Users/joeymusante/dev/hand-remote/gesture-remote/gesture_recognizer.task'
+# Path to the .task model file. Try to locate it at the repository/script root.
+current_directory = Path(__file__).parent
+MODEL_PATH = current_directory / 'gesture_recognizer.task'
 
 # === SHORTCUTS TO THE TASKS API ===
 # Use the 'mp.tasks' API rather than mixing imports from different helper modules.
@@ -74,4 +77,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

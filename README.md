@@ -24,10 +24,11 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-3. Place the MediaPipe gesture recognizer model (.task) into the repository.
-   Update the `MODEL_PATH` constant in `demo.py` to point to the .task file.
+3. Place the MediaPipe gesture recognizer model (.task) into the root of the repository.
+   Download [.task file model here](https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer/index#models) 
 
 4. Run the demo:
+NOTE: It takes like ~20 secs the first time to start running
 
 ```bash
 python demo.py
@@ -44,12 +45,6 @@ Press `q` in the camera window to exit.
   Tasks.
 - `requirements.txt` — Python dependencies used by this project.
 
-## Notes & troubleshooting
-
-- Model: The demo expects a MediaPipe Tasks `.task` model compatible with the
-  GestureRecognizer API. If you don't have a `.task` file, visit
-  https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer/index#models to find models or instructions to
-  generate one.
 
 ## License
 mediapipe_gesture_recognition is under [Apache v2 license](LICENSE).
