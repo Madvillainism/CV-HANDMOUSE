@@ -1,5 +1,5 @@
 # Gesture Recognizer Demo
-I recently got into ML and had trouble finding good recent examples of using MediaPipe to reconize
+I recently got into AI and ML and had trouble finding good recent examples of using MediaPipe to reconize
 Hand gestures. So alas, after a bit of research I have a straightforward example of using Google's MediaPipe that hopefully anyone can follow. 
 
 
@@ -48,7 +48,7 @@ Press `q` in the camera window to exit.
 
 - Model: The demo expects a MediaPipe Tasks `.task` model compatible with the
   GestureRecognizer API. If you don't have a `.task` file, visit
-  https://developers.google.com/mediapipe to find models or instructions to
+  https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer/index#models to find models or instructions to
   generate one.
 
 ## Next steps
