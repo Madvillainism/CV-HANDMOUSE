@@ -3,14 +3,10 @@ import cv2
 import mediapipe as mp
 
 # NOTE: this file is a minimal live-stream example following the
-# Google MediaPipe GestureRecognizer demo. It shows the missing pieces:
-#  - a real .task model path (replace MODEL_PATH below)
-#  - consistent use of the tasks API (don't reassign imported classes)
-#  - creating an mp.Image from an OpenCV frame
-#  - calling the recognizer in LIVE_STREAM mode with timestamp_ms
+# Google MediaPipe GestureRecognizer demo. 
 
 # === CONFIGURATION ===
-# Path to the .task model file. Replace this with the actual .task file path.
+# Path to the .task model file. 
 MODEL_PATH = '/Users/joeymusante/dev/hand-remote/gesture-remote/gesture_recognizer.task'
 
 # === SHORTCUTS TO THE TASKS API ===
@@ -28,7 +24,7 @@ def print_result(result, output_image, timestamp_ms: int):
     The demo prints the result; in a real app you'd use the landmarks/classification
     info to drive your logic or draw overlays on the output_image.
     """
-    if result.gestures:
+    if result and result.gestures:
         print(f'gesture recognition result {result.gestures[0][0].category_name} at time {timestamp_ms}')
 
 
@@ -36,8 +32,8 @@ def main():
     # Create options for live stream mode.
     options = GestureRecognizerOptions(
         base_options=BaseOptions(model_asset_path=MODEL_PATH),
-        running_mode=RunningMode.LIVE_STREAM,
-        result_callback=print_result,
+        running_mode=RunningMode.LIVE_STREAM, 
+        result_callback=print_result, # Used for when recognize_async is called below asynchronously (results come back via this callback defined above) 
     )
 
     # Create the recognizer
@@ -63,22 +59,9 @@ def main():
                 # Timestamp in milliseconds is required for LIVE_STREAM mode.
                 timestamp_ms = int(time.time() * 1000)
 
-                # For LIVE_STREAM use the async API so results come back via the callback.
-                # The exact method name can differ across versions: common names are
-                # `recognize_async`, `recognize_for_video` or `detect_async`.
-                # If your mediapipe version doesn't have `recognize_async`, check
-                # recognizer's methods or use `recognize` for single-image mode.
-                try:
-                    recognizer.recognize_async(mp_image, timestamp_ms)
-                except AttributeError:
-                    # Fallback: if there is no recognize_async, try recognize_for_video
-                    # or the synchronous recognize method. This depends on mediapipe version.
-                    if hasattr(recognizer, 'recognize_for_video'):
-                        recognizer.recognize_for_video(mp_image, timestamp_ms)
-                    else:
-                        # synchronous call (will block and return a result)
-                        result = recognizer.recognize(mp_image)
-                        print_result(result, None, timestamp_ms)
+                # live image data to perform gesture recognition asynchronously
+                result = recognizer.recognize_async(mp_image, timestamp_ms)
+                print_result(result, None, timestamp_ms)
 
                 # Optional: show the camera feed and stop on 'q'
                 cv2.imshow('Gesture Live', frame)
