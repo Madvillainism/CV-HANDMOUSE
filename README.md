@@ -51,13 +51,6 @@ Press `q` in the camera window to exit.
   https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer/index#models to find models or instructions to
   generate one.
 
-## Next steps
-- Hook the `print_result` callback to UI overlays or control logic.
-- Add a small recorded-video test harness (so you don't need a webcam for
-  development or CI).
-- Pin the exact MediaPipe version used to reproduce behavior across machines
-  by updating `requirements.txt`.
-
 ## License
 This project contains example code for demonstration purposes. No license is
 specified — add one if you plan to share or reuse this repository publicly.
