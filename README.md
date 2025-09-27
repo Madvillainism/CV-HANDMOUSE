@@ -1,2 +1,63 @@
-# gesture-remote
-A TV remote based on hand gestures
+# Gesture Recognizer Demo
+I recently got into ML and had trouble finding good recent examples of using MediaPipe to reconize
+Hand gestures. So alas, after a bit of research I have a straightforward example of using Google's MediaPipe that hopefully anyone can follow. 
+
+
+This repository contains a minimal example that demonstrates using MediaPipe's
+GestureRecognizer in live-stream mode (camera input). The `demo.py` script
+opens your webcam, feeds frames into the recognizer, and prints gesture
+classification results via a callback.
+
+## Quickstart
+
+1. Install Python 3.8+ and create a virtual environment (recommended):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+3. Place the MediaPipe gesture recognizer model (.task) into the repository.
+   Update the `MODEL_PATH` constant in `demo.py` to point to the .task file.
+
+4. Run the demo:
+
+```bash
+python demo.py
+```
+
+Press `q` in the camera window to exit.
+
+## Files
+- `demo.py` — Live camera demo using MediaPipe GestureRecognizer in
+  LIVE_STREAM mode. Edit `MODEL_PATH` at the top of the file to point to your
+  `.task` model file.
+- `gesture_recognizer.task` — (not included) The model file expected by the
+  demo. Obtain a model from MediaPipe or export one compatible with MediaPipe
+  Tasks.
+- `requirements.txt` — Python dependencies used by this project.
+
+## Notes & troubleshooting
+
+- Model: The demo expects a MediaPipe Tasks `.task` model compatible with the
+  GestureRecognizer API. If you don't have a `.task` file, visit
+  https://developers.google.com/mediapipe to find models or instructions to
+  generate one.
+
+## Next steps
+- Hook the `print_result` callback to UI overlays or control logic.
+- Add a small recorded-video test harness (so you don't need a webcam for
+  development or CI).
+- Pin the exact MediaPipe version used to reproduce behavior across machines
+  by updating `requirements.txt`.
+
+## License
+This project contains example code for demonstration purposes. No license is
+specified — add one if you plan to share or reuse this repository publicly.
