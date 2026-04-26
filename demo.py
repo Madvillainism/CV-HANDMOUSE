@@ -34,7 +34,7 @@ alpha = 1  # Smoothing factor for cursor movement (0 = no smoothing, 1 = max smo
 smoothed_x = 0
 smoothed_y = 0
 # CLICK CONFIG
-click_times = []
+last_click = 0
 click_cooldown = 0.5
 freeze_cursor = False
 # DRAG CONFIG
@@ -175,7 +175,7 @@ def main():
         result_callback=print_result, # Used for when recognize_async is called below asynchronously (results come back via this callback defined above) 
     )
 
-    global freeze_cursor, click_times, is_dragging, min_x, max_x, min_y, max_y, smoothed_x, smoothed_y, alpha, fist_start, fist_confirm, dinho_window
+    global freeze_cursor, last_click, is_dragging, min_x, max_x, min_y, max_y, smoothed_x, smoothed_y, alpha, fist_start, fist_confirm
 
     # Create the recognizer
     with GestureRecognizer.create_from_options(options) as recognizer:
@@ -285,16 +285,14 @@ def main():
                     click_distance = math.hypot(norm_x - thumb_x, norm_y - thumb_y)
                     if click_distance < 0.05:  # Threshold for click gesture
                         current_time = time.time()
-                        if not freeze_cursor and (not click_times or current_time - click_times[-1] > click_cooldown):
+                        if not freeze_cursor and (current_time - last_click < 0.4):
                             freeze_cursor = True
-                            click_times.append(current_time)
-                            
-                            if (len(click_times) >= 2 and current_time - click_times[-2] < click_cooldown * 2):
-                                pyautogui.doubleClick()
-                                cv2.putText(frame_flipped, "Double Click", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
-                            else:
-                                pyautogui.click()
-                                cv2.putText(frame_flipped, "Click", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+                            pyautogui.click()
+                            cv2.putText(frame_flipped, "Double Click", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+                        else:
+                            pyautogui.doubleClick()
+                            cv2.putText(frame_flipped, "Click", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+                        last_click = current_time
                     else:
                         freeze_cursor = False
 
