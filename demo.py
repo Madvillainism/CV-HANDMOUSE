@@ -6,6 +6,8 @@ import math
 import webbrowser
 from pathlib import Path
 from typing import Optional, List, Tuple
+from collections import deque
+
 
 # === CONFIGURATION ===
 # Path to the .task model file. MUST BE placed at the repository/script root.
@@ -26,6 +28,22 @@ fokiu_show = cv2.resize(fokiu_image, (400, 400))
 # Load and prepare the Mario image
 mario_image = cv2.imread('mario.jpg')
 mario_show = cv2.resize(mario_image, (400, 400))
+
+# load hello
+hello_image = cv2.imread('jelou.jfif')
+hello_show = cv2.resize(hello_image, (400, 400))
+
+# Load the scuba video
+scuba_video = cv2.VideoCapture('scuba.mp4')
+video_fps = 30
+if video_fps == 0: # Fallback if FPS info is not available
+    video_fps = 30
+frame_duration = 1 / video_fps
+last_video_update = 0
+
+# Hello setup
+wave_buffer = deque(maxlen=30)  # Buffer to store recent wave gesture detections
+last_wave_time = 0
 
 # CURSOR MOVEMENT SMOOTHING
 min_speed = 0.01  # Minimum speed to consider for movement (to prevent jitter)
@@ -75,6 +93,40 @@ def normalize_to_range(val, min_val, max_val):
     return max(0, min(1, (val - min_val) / (max_val - min_val)))
 
 
+def is_palm_open(landmarks):
+    fingers_up = [
+        landmarks[8][1] < landmarks[6][1],   # Index finger
+        landmarks[12][1] < landmarks[10][1], # Middle finger
+        landmarks[16][1] < landmarks[14][1], # Ring finger
+        landmarks[20][1] < landmarks[18][1], # Pinky
+    ]
+
+    return all(fingers_up)
+
+
+def detect_wave(landmarks):
+
+    wrist_x = landmarks[0][0]  # Wrist x
+    wave_buffer.append(wrist_x)
+
+    # We need a decent amount of frames to detect a "pattern" (e.g., 15 frames)
+    if len(wave_buffer) >= 20:
+        flips = 0
+        for i in range(1, len(wave_buffer) - 1):
+            # Check for a change in direction (Peak or Valley)
+            if (wave_buffer[i-1] < wave_buffer[i] > wave_buffer[i+1]) or \
+               (wave_buffer[i-1] > wave_buffer[i] < wave_buffer[i+1]):
+                flips += 1
+        
+        # Check total distance to ensure it's not just jitter
+        total_movement = max(wave_buffer) - min(wave_buffer)
+        
+        # A wave usually has at least 2 direction changes (Left -> Right -> Left)
+        if flips >= 3 and total_movement > 0.08:
+            print("wave detected")
+            return True
+            
+    return False
 def fokiu_detect(landmarks):
    # 1. Middle finger should be much higher than its base joint (extended)
     middle_extended = landmarks[12][1] < landmarks[10][1]
@@ -84,13 +136,10 @@ def fokiu_detect(landmarks):
     ring_curled = landmarks[16][1] > landmarks[14][1]
     pinky_curled = landmarks[20][1] > landmarks[18][1]
     
-    # Optional: Thumb tucked (usually inside the hand, 
-    # checking if it's near the index finger is common)
-    # This is an approximation
     thumb_tucked = landmarks[4][1] > landmarks[8][1]
 
     return middle_extended and index_curled and ring_curled and pinky_curled and thumb_tucked
-    return thumb_in and pinky_in and index_curled and middle_extended and ring_curled
+    #return thumb_in and pinky_in and index_curled and middle_extended and ring_curled
 
 def dinho_detect(landmarks):
     # Landmarks: 0=Wrist, 4=Thumb, 8=Index, 12=Middle, 16=Ring, 20=Pinky
@@ -257,6 +306,31 @@ def main():
                         x1, x2 = x_offset, x_offset + fokiu_show.shape[1]
                         frame_flipped[y1:y2, x1:x2] = fokiu_show
                         cv2.putText(frame_flipped, "Fokiu", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)             
+
+                    last_wave_time = 0
+                    if detect_wave(_latest_landmarks_norm):
+                        current_time = time.time()
+                        if current_time - last_wave_time > 2:  # 2 second cooldown for wave gesture
+                            print("Holiwi")
+                            y1, y2 = y_offset, y_offset + hello_show.shape[0]
+                            x1, x2 = x_offset, x_offset + hello_show.shape[1]
+                            frame_flipped[y1:y2, x1:x2] = hello_show
+                            cv2.putText(frame_flipped, "holi", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)  
+                            """ if last_video_update > frame_duration:
+                                ret, scuba_frame = scuba_video.read()
+                                if not ret:
+                                    scuba_video.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Loop the video
+                                    ret, scuba_frame = scuba_video.read()
+                                if ret:
+                                    current_video_frame = cv2.resize(scuba_frame, (200, 200))
+                                    last_video_update = time.time()
+                            if current_video_frame is not None:
+                                h, w = current_video_frame.shape[:2]
+                                frame_flipped[10:10+h, 10:10+w] = current_video_frame
+                                cv2.putText(frame_flipped, "Scuba Time!", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA) """
+                            last_wave_time = current_time
+
+                            
 
                     # Detect fist gesture for dragging
                     
